@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 import requests
 import corrida as races
+from tabulate import tabulate
 
 #def pegar_tipos_resultados():
 
@@ -10,8 +11,18 @@ def pegar_resultados_corrida(url, etapa):
         #Pegando o HTML do site
         html_text = requests.get(f'https://www.formula1.com/{url}').text
         soup = BeautifulSoup(html_text, 'lxml')
+
+        cabecalho = soup.find('table', class_ = 'resultsarchive-table').thead
+        colunas_cabecalho = cabecalho.find_all('th')
+
         tabelaResultado = soup.find('table', class_ = 'resultsarchive-table').tbody
         linhas_tabela = tabelaResultado.find_all('td')
+
+        #Adicionando os valores do cabeçalho
+        pilotos = []
+        pilotos.append([])
+        for index, coluna in enumerate(colunas_cabecalho):
+            pilotos[0].append(coluna.text)
 
         #Verificando qual a etapa do fim de semana e separando o número de colunas do html
         numeroColunas = 0
@@ -24,11 +35,10 @@ def pegar_resultados_corrida(url, etapa):
         elif etapa == "practice-1" or etapa == "practice-2" or etapa == "practice-3" or etapa == "sprint-results" or etapa == "race-result":
             numeroColunas = 9
 
-
         #Pegando os valores do HTML
-        pilotos = []
-        piloto_atual = -1
+        piloto_atual = 0
         for index, linha in enumerate(linhas_tabela):
+            #verificando se é um novo piloto a partir do index atual e do número de colunas
             if index % numeroColunas == 0:
                 piloto_atual += 1
                 pilotos.append([])
@@ -37,9 +47,10 @@ def pegar_resultados_corrida(url, etapa):
         #Formatando o nome dos pilotos para remover o \n
         for index, formatar in enumerate(pilotos):
             pilotos[index][3] = formatar[3].replace('\n', ' ')
+            pilotos[index].pop(0)
+            pilotos[index].pop(-1)
 
-        for dados in pilotos:
-            print(f'{dados}')
+        print(tabulate(pilotos, tablefmt='fancy_grid', headers='firstrow'))
 
         salvar_dados = ""
         while salvar_dados != "s" and salvar_dados != "n":
@@ -52,8 +63,7 @@ def pegar_resultados_corrida(url, etapa):
             pais = link_dividido[9]
             ano = link_dividido[6]
             with open(f'{pais.upper()} - {etapa.replace(".html", "").replace("-", " ").upper()} - {ano}.txt', 'w') as salvar:
-                for dados in pilotos:
-                    salvar.write(f'{dados}\n')
+                salvar.write(tabulate(pilotos, tablefmt='grid', headers='firstrow'))
 
     except:
         print("Ainda não há dados sobre esse Grande Prêmio")

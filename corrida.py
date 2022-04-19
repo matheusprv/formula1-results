@@ -8,6 +8,9 @@ class corrida:
     def toString(self):
         return (f'Ano: {self.ano} - Corrida: {self.corrida} - País: {self.pais} - URL: {self.url}')
 
+    def informacao_grande_premio(self):
+        return (f'Etapa: {self.corrida} - País: {(self.pais).replace("-"," ").title()}')
+
 def ler_corridas():
 
     arquivo = open('corridas.txt', 'r')
@@ -22,6 +25,8 @@ def ler_corridas():
         corridas.append(corrida(linhas[i+1], linhas[i], linhas[i+2], linhas[i+3]))
 
     return corridas
+
+
 
 
 #ano = int(input("Digite o ano para pesquisa: "))
